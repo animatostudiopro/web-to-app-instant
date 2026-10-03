@@ -1,2 +1,3 @@
-# web-to-app-instant
-Web To App Instant — built with Web to App Instant (order WTAA38WCEB6)
+# Web To App Instant
+
+Deployed to GitHub Pages with **Web to App Instant** — order `WTAA38WCEB6`.

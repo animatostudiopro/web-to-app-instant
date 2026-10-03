@@ -1,0 +1,54 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    name: Build your site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+      - name: Download your files
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download wta-input --clobber
+          if [ -f icon.png ]; then mkdir -p assets-wta && mv icon.png assets-wta/icon.png; fi
+          ls -la
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install build tools
+        run: npm install --no-audit --no-fund
+      - name: Build your web app
+        run: node scripts/prepare-web.mjs
+        env:
+          WTA_SECRETS: ${{ secrets.WTA_SECRETS }}
+          WTA_BASE: /${{ github.event.repository.name }}/
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+  deploy:
+    name: Publish to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish site
+        id: deployment
+        uses: actions/deploy-pages@v4
